@@ -3,10 +3,13 @@ import 'dart:ffi' as ffi;
 
 import 'package:path/path.dart' as path;
 import 'package:process_utils/process_utils.dart';
-import 'package:creative_project_client_flutter/database.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
-const String kServerExeFileName = "creative_project_server.exe"; // TODO: cfg
+import 'package:creative_project_client_flutter/database.dart';
+import 'package:creative_project_client_flutter/api/api.dart';
+import 'package:creative_project_client_flutter/2i18nEx.dart';
+
+const String kServerExeFileName = "creative_project_server.exe";
 
 class ServerPage extends StatefulWidget {
   const ServerPage({super.key});
@@ -18,33 +21,7 @@ class ServerPage extends StatefulWidget {
 class _ServerPageState extends State<ServerPage> {
   late final Database database;
   late final ProcessUtils processUtils;
-
-  /// TODO:
-  /// 1. methods:
-  /// 1.1. run() for start .exe; filename = const; save pid or find by filename;
-  /// 1.2. stop() // kill() for kill .exe; by pid or find filename;
-  /// 1.3. getPid() for kill()
-  /// 2. style:
-  ///     (h:40; *STATUS*)
-  ///         (stop)
-  ///     details: ... (ex: runtime; filename; pid; status (again); ...)
-  /// 3. Path to {filename.exe} if its moved or not found by `./`
-  /// 4. Call server with args: --host={lip} --port={port} --scanDelay=...
-  ///   All from cfg.json; RM cfg.json
-  /// 5. Smile ;)
-
-  // void start() async {
-  //   Process p = await Process.start(
-  //     'creative_project_server.exe',
-  //     "--lip=192.168.10.104 --port=8097 --sd=100 --st=8".split(' '),
-  //     // TODO: db args
-  //   );
-  //   database.pid = p.pid;
-  // }
-
-  // void stop() async {
-  //   Process.killPid(database.pid);
-  // }
+  late final API api;
 
   @override
   void initState() {
@@ -56,14 +33,116 @@ class _ServerPageState extends State<ServerPage> {
 
     processUtils = ProcessUtils(ffi.DynamicLibrary.open(libPath));
     database = Database();
+    api = API();
 
     super.initState();
   }
 
+  Future<bool> isRunning() async =>
+      processUtils.get_pid_by_name(kServerExeFileName) > -1;
+
+  void start() async {
+    List<String> argsList = [
+      "--lip=${await api.getLocalIP()}",
+      "--port=${database.port}",
+      "--sd=${database.scanDelay}",
+      "--st=${database.scanThreads}",
+      "--df=${database.dataFileName}",
+      "--cfe=${database.corrupted}",
+    ];
+
+    bool ok =
+        processUtils.start_by_name(kServerExeFileName, argsList.join(" ")) == 1;
+
+    if (ok) {
+      setState(() {});
+    } else {
+      _showSnackbar("$serverSettingsPageStartError ($kServerExeFileName)");
+    }
+  }
+
+  void stop() {
+    setState(() {
+      processUtils.kill_by_name(kServerExeFileName);
+    });
+  }
+
+  void _showSnackbar(String data) {
+    FluentThemeData theme = FluentTheme.of(context);
+    showSnackbar(
+      context,
+      SnackbarTheme(
+        data: SnackbarThemeData(
+          padding: EdgeInsets.symmetric(
+            vertical: 8.0 + theme.visualDensity.vertical,
+            horizontal: 16.0 + theme.visualDensity.horizontal,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4.0),
+            color: theme.brightness == Brightness.light
+                ? const Color(0xFFDEDEDE)
+                : const Color(0xFF212121),
+          ),
+        ),
+        child: Snackbar(
+          content: Text(data),
+          extended: true,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text("${processUtils.get_pid_by_name('YourPhone.exe')}"),
+    return ScaffoldPage(
+      padding: EdgeInsets.zero,
+      header: FutureBuilder<bool>(
+        future: isRunning(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            bool isRunningV = snapshot.data!;
+            return Row(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 4),
+                  child: Text(serverSettingsPageStatus),
+                ),
+                Text(isRunningV
+                    ? serverSettingsPageRunning
+                    : serverSettingsPageNotRunning),
+                const Expanded(child: Spacer()),
+                Button(
+                  onPressed: isRunningV ? stop : start,
+                  child: Text(isRunningV
+                      ? serverSettingsPageStop
+                      : serverSettingsPageStart),
+                ),
+                if (isRunningV)
+                  Button(
+                    onPressed: () {
+                      processUtils.kill_by_name(kServerExeFileName);
+                      start();
+                    },
+                    child: const Text(serverSettingsPageReload),
+                  ),
+              ],
+            );
+          } else {
+            return const Padding(
+              padding: EdgeInsets.only(left: 4),
+              child: Text(serverSettingsPageLoading),
+            );
+          }
+        },
+      ),
+      content: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          Text("TODO: логи. Здесь будут выводиться логи сервера, "
+              "просто я еще не придумал как реализовать это."),
+        ],
+      ),
     );
   }
 }

@@ -16,9 +16,6 @@ class Database {
     _instance = Database._(box: box);
   }
 
-  int get pid => box.get('pid', defaultValue: -1);
-  set pid(int value) => box.put('pid', value);
-
   int get port => box.get('port', defaultValue: 8097);
   set port(int value) => box.put('port', value);
 

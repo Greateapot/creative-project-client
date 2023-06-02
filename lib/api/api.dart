@@ -22,7 +22,7 @@ class API {
     _instance = API._(client: http.Client());
   }
 
-  Future<String> _getLocalIP() async {
+  Future<String> getLocalIP() async {
     for (NetworkInterface interface in await NetworkInterface.list()) {
       for (var address in interface.addresses.map((e) => e.address)) {
         if (address.startsWith('192.168')) return address;
@@ -38,7 +38,7 @@ class API {
   }) async {
     // Параметры каждый раз получаются заново просто потому что так проще
     // проверить, подключено ли устройство к сети.
-    ip ??= await _getLocalIP();
+    ip ??= await getLocalIP();
     int port = Database().port;
 
     return _parseResponse<T>(

@@ -1,7 +1,10 @@
-// TODO: MV to i18n; use package-codegen
+/*
+TODO: MV to i18n; use package-codegen
+Этого файла не должно быть, просто затычка, позже будет нормальный перевод.
+*/
 
-/// Творческая работа на Flutter
-const String appTitle = "Creative Project Client on Flutter";
+/// Творческая работа
+const String appTitle = "Creative Project Client";
 
 /// Творческая работа
 const String appStorageSubDir = "Creative Project";
@@ -104,3 +107,27 @@ const String settingsPageDataFileNameTitle = "Data filename (docs):";
 
 /// Формат поврежденных файлов (Если файл сохранения окажется поврежден, он будет переименован путем добавления в конец формат поврежденных файлов. Пример: data.json -> data.json.crp):
 const String settingsPageCorruptedTitle = "Corrupted file extension (docs):";
+
+/// Статус:
+const String serverSettingsPageStatus = "Status: ";
+
+/// Включен
+const String serverSettingsPageRunning = "Running...";
+
+/// Выключен
+const String serverSettingsPageNotRunning = "Not running";
+
+/// Остановить
+const String serverSettingsPageStop = "Stop";
+
+/// Запустить
+const String serverSettingsPageStart = "Start";
+
+/// Перезагрузить
+const String serverSettingsPageReload = "Reload";
+
+/// Загрузка...
+const String serverSettingsPageLoading = "Loading...";
+
+/// Не удается запустить сервер. Быть может, вы переместили файл сервера?
+const String serverSettingsPageStartError = "Can't start server. May be you moved out server exe?";
