@@ -26,7 +26,7 @@ class _SettingsPageState extends State<SettingsPage> {
     database = Database();
     dataFileNameController = TextEditingController(text: database.dataFileName);
     corruptedController = TextEditingController(text: database.corrupted);
-    scanThreadsValue = (log(database.scanThreads) ~/ log(2)) - 1;
+    scanThreadsValue = (log(database.scanThreads) ~/ log(2));
     scanThreadsValues = List.generate(
       9,
       (index) => pow(2, index).toInt(),

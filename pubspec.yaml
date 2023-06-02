@@ -20,6 +20,8 @@ dependencies:
   hive_flutter: any
   file_selector: any
   path: ^1.8.2
+  path_provider: any
+  flutter_download_manager: ^0.5.5
   process_utils:
     path: "../creative_project_submodule"
 

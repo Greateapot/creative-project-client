@@ -31,7 +31,7 @@ class API {
     throw NoConnectivityException("fail to get local ip");
   }
 
-  Future<models.Response<T>> _request<T>(
+  Future<Uri> buildUri(
     String path, {
     String? ip,
     Map<String, dynamic>? queryParameters,
@@ -40,11 +40,23 @@ class API {
     // проверить, подключено ли устройство к сети.
     ip ??= await getLocalIP();
     int port = Database().port;
-
-    return _parseResponse<T>(
-      await client.get(Uri.http("$ip:$port", path, queryParameters)),
-    );
+    return Uri.http("$ip:$port", path, queryParameters);
   }
+
+  Future<models.Response<T>> _request<T>(
+    String path, {
+    String? ip,
+    Map<String, dynamic>? queryParameters,
+  }) async =>
+      _parseResponse<T>(
+        await client.get(
+          await buildUri(
+            path,
+            ip: ip,
+            queryParameters: queryParameters,
+          ),
+        ),
+      );
 
   models.Response<T> _parseResponse<T>(http.Response response) {
     switch (response.statusCode) {
@@ -117,4 +129,7 @@ class API {
           "${response.err!.message}");
     }
   }
+
+  Future<Uri> get(String title, [String? ip]) async => await buildUri('/get',
+      ip: ip, queryParameters: {'title': models.b64enc(title)});
 }

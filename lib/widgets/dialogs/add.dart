@@ -58,7 +58,12 @@ class _AddItemDialogState extends State<AddItemDialog> {
 
   void pickFile(BuildContext context) async {
     final XFile? file = await openFile(acceptedTypeGroups: <XTypeGroup>[]);
-    if (file != null) setState(() => pathController.text = file.path);
+    if (file != null) {
+      setState(() {
+        pathController.text = file.path;
+        titleController.text = file.path.split('/').last;
+      });
+    }
   }
 
   void pickDirectory(BuildContext context) async {

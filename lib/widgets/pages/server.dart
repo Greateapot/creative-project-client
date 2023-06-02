@@ -110,7 +110,7 @@ class _ServerPageState extends State<ServerPage> {
                 Text(isRunningV
                     ? serverSettingsPageRunning
                     : serverSettingsPageNotRunning),
-                const Expanded(child: Spacer()),
+                const Spacer(),
                 Button(
                   onPressed: isRunningV ? stop : start,
                   child: Text(isRunningV

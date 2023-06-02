@@ -1,11 +1,13 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter_download_manager/flutter_download_manager.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:creative_project_client_flutter/widgets/dialogs/add.dart';
 import 'package:creative_project_client_flutter/api/api.dart';
 import 'package:creative_project_client_flutter/api/models/models.dart'
     as models;
-
-import '../../2i18nEx.dart';
+import 'package:creative_project_client_flutter/2i18nEx.dart';
 
 class ItemListPage extends StatefulWidget {
   const ItemListPage({super.key, this.ip});
@@ -17,8 +19,13 @@ class ItemListPage extends StatefulWidget {
 }
 
 class _ItemListPageState extends State<ItemListPage> {
+  final DownloadManager dl = DownloadManager();
   final API api = API();
+
   List<models.Item> selected = [];
+  List<models.Item> downloading = [];
+
+  String? status;
 
   late models.Data value;
   bool refresh = true;
@@ -92,23 +99,25 @@ class _ItemListPageState extends State<ItemListPage> {
   }
 
   void downloadSelectedItems() async {
-    final List<String> err = [];
-    for (final models.Item item in value.items) {
-      if (selected.contains(item)) {
-        selected.remove(item);
-        bool result = false; // TODO: downlaod item with api.get(item.title);
-        if (!result) err.add(item.title);
-      }
+    for (final models.Item item in selected) {
+      downloadItem(item);
     }
-    if (err.isNotEmpty) {
-      _showSnackbar('$itemListDownloadSelectedItemsErr ${err.join(', ')}');
-    }
-    setState(() => refresh = true);
+    setState(() => selected.clear());
   }
 
   void downloadItem(models.Item item) async {
-    bool result = false; // TODO: downlaod item with api.get(item.title);
-    if (!result) _showSnackbar('$itemListDownloadItemErr ${item.title}');
+    setState(() => downloading.add(item));
+
+    DownloadTask? task = await dl.addDownload(
+      (await api.get(item.title, widget.ip)).toString(),
+      path.join((await getDownloadsDirectory())!.path, item.title),
+    );
+    DownloadStatus status = await task!.whenDownloadComplete();
+    if (!status.isCompleted) {
+      _showSnackbar('$itemListDownloadItemErr ${item.title}');
+    }
+
+    setState(() => downloading.remove(item));
   }
 
   @override
@@ -120,8 +129,13 @@ class _ItemListPageState extends State<ItemListPage> {
 
   Widget headerBuilder(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        if (status != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text(status!),
+          ),
+        const Spacer(),
         // TODO: sort
         const ComboBox<String>(
           items: [
@@ -221,7 +235,9 @@ class _ItemListPageState extends State<ItemListPage> {
                         case 1: // file
                           return IconButton(
                             icon: const Icon(FluentIcons.download),
-                            onPressed: () => downloadItem(item),
+                            onPressed: downloading.contains(item)
+                                ? null
+                                : () => downloadItem(item),
                           );
                         case 2: // dir
                           return IconButton(
