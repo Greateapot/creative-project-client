@@ -49,3 +49,6 @@ app.*.map.json
 /*.dll
 /*.exe
 /*.json
+
+# temp
+/temp

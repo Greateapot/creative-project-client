@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:creative_project_client_flutter/database.dart';
+import 'package:creative_project_client/database.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
 import '../../2i18nEx.dart';

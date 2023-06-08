@@ -4,12 +4,12 @@ import 'dart:ffi' as ffi;
 import 'package:path/path.dart' as path;
 import 'package:process_utils/process_utils.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:api/api.dart';
 
-import 'package:creative_project_client_flutter/database.dart';
-import 'package:creative_project_client_flutter/api/api.dart';
-import 'package:creative_project_client_flutter/2i18nEx.dart';
+import '../../database.dart';
+import '../../2i18nEx.dart';
 
-const String kServerExeFileName = "creative_project_server.exe";
+const String kServerExeFileName = 'creative_project_server.exe';
 
 class ServerPage extends StatefulWidget {
   const ServerPage({super.key});
@@ -41,23 +41,22 @@ class _ServerPageState extends State<ServerPage> {
   Future<bool> isRunning() async =>
       processUtils.get_pid_by_name(kServerExeFileName) > -1;
 
-  void start() async {
-    List<String> argsList = [
-      "--lip=${await api.getLocalIP()}",
-      "--port=${database.port}",
-      "--sd=${database.scanDelay}",
-      "--st=${database.scanThreads}",
-      "--df=${database.dataFileName}",
-      "--cfe=${database.corrupted}",
+  void start() {
+    List<String> args = [
+      '--local-ip="${api.ip}"',
+      '--corr-file-ext="${database.corrupted}"',
+      '--data-filename="${database.dataFileName}"',
+      '--port=${database.port}',
+      '--scan-delay=${database.scanDelay}',
+      '--scan-threads=${database.scanThreads}',
     ];
 
-    bool ok =
-        processUtils.start_by_name(kServerExeFileName, argsList.join(" ")) == 1;
+    debugPrint("Starting server with args: ${args.join(' ')}");
 
-    if (ok) {
+    if (processUtils.start_by_name(kServerExeFileName, args.join(' ')) == 1) {
       setState(() {});
     } else {
-      _showSnackbar("$serverSettingsPageStartError ($kServerExeFileName)");
+      _showSnackbar('$serverSettingsPageStartError ($kServerExeFileName)');
     }
   }
 
@@ -139,8 +138,8 @@ class _ServerPageState extends State<ServerPage> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         physics: const AlwaysScrollableScrollPhysics(),
         children: const [
-          Text("TODO: логи. Здесь будут выводиться логи сервера, "
-              "просто я еще не придумал как реализовать это."),
+          Text('TODO: логи. Здесь будут выводиться логи сервера, '
+              'просто я еще не придумал как реализовать это.'),
         ],
       ),
     );

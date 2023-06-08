@@ -2,12 +2,10 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:api/api.dart';
+import 'package:api/models.dart' as models;
 
-import 'package:creative_project_client_flutter/widgets/winnavbar.dart';
-import 'package:creative_project_client_flutter/api/api.dart';
-import 'package:creative_project_client_flutter/api/models/models.dart'
-    as models;
-
+import 'winnavbar.dart';
 import '../theme.dart';
 import '../2i18nEx.dart';
 
@@ -30,10 +28,6 @@ class Root extends StatefulWidget {
 class _RootState extends State<Root> {
   final API api = API();
   bool updating = false;
-
-  // final searchKey = GlobalKey(debugLabel: 'Search Bar Key');
-  // final searchFocusNode = FocusNode();
-  // final searchController = TextEditingController();
 
   late List<NavigationPaneItem> originalItems = [
     PaneItem(
@@ -120,7 +114,7 @@ class _RootState extends State<Root> {
     ];
 
     for (final String ip in online.online) {
-      String path = '/list?ip=$ip';
+      final String path = '/list?ip=$ip';
       lOriginalItems.add(
         PaneItem(
           key: Key(path),
@@ -145,26 +139,9 @@ class _RootState extends State<Root> {
   }
 
   @override
-  void dispose() {
-    // searchController.dispose();
-    // searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  Widget _progressRing(BuildContext context) => const Padding(
-        padding: EdgeInsets.all(4),
-        child: SizedBox(
-          height: kOneLineTileHeight / 2,
-          width: kOneLineTileHeight / 2,
-          child: ProgressRing(strokeWidth: 2),
-        ),
-      );
-
-  @override
   Widget build(BuildContext context) {
     debugPrint("Root Rebuild: ${originalItems.map((e) => e.key).join(', ')}");
     final appTheme = context.watch<AppTheme>();
-    // final theme = FluentTheme.of(context);
     return NavigationView(
       key: GlobalKey(debugLabel: 'Navigation View Key'),
       appBar: const NavigationAppBar(
@@ -199,7 +176,14 @@ class _RootState extends State<Root> {
               children: [
                 const Text(rootMenu),
                 updating
-                    ? _progressRing(context)
+                    ? const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: SizedBox(
+                          height: kOneLineTileHeight / 2,
+                          width: kOneLineTileHeight / 2,
+                          child: ProgressRing(strokeWidth: 2),
+                        ),
+                      )
                     : IconButton(
                         onPressed: getOnline,
                         icon: const Icon(FluentIcons.refresh),
@@ -214,34 +198,7 @@ class _RootState extends State<Root> {
             : const StickyNavigationIndicator(),
         items: originalItems,
         footerItems: footerItems,
-        // autoSuggestBox: AutoSuggestBox(
-        //   key: searchKey,
-        //   focusNode: searchFocusNode,
-        //   controller: searchController,
-        //   unfocusedColor: Colors.transparent,
-        //   items: originalItems.whereType<PaneItem>().map((item) {
-        //     assert(item.title is Text);
-        //     final text = (item.title as Text).data!;
-        //     return AutoSuggestBoxItem(
-        //       label: text,
-        //       value: text,
-        //       onSelected: () {
-        //         item.onTap?.call();
-        //         searchController.clear();
-        //       },
-        //     );
-        //   }).toList(),
-        //   trailingIcon: IgnorePointer(
-        //     child: IconButton(
-        //       onPressed: () {},
-        //       icon: const Icon(FluentIcons.search),
-        //     ),
-        //   ),
-        //   placeholder: 'Search',
-        // ),
-        // autoSuggestBoxReplacement: const Icon(FluentIcons.search),
       ),
-      // onOpenSearch: () => searchFocusNode.requestFocus(),
     );
   }
 }

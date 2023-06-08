@@ -4,19 +4,18 @@ import 'package:system_theme/system_theme.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:api/api.dart';
 
-import 'package:creative_project_client_flutter/api/api.dart';
-import 'package:creative_project_client_flutter/database.dart';
-import 'package:creative_project_client_flutter/router.dart';
-import 'package:creative_project_client_flutter/theme.dart';
-
+import 'database.dart';
+import 'router.dart';
+import 'theme.dart';
 import '2i18nEx.dart';
 
 void main() async {
   // db
   await Hive.initFlutter(appStorageSubDir);
   await Database.init();
-  await API.init();
+  await API.init(Database().port);
 
   //theme
   await SystemTheme.accentColor.load();

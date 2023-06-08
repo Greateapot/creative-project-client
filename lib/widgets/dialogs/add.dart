@@ -1,24 +1,9 @@
 import 'package:fluent_ui/fluent_ui.dart';
 
 import 'package:file_selector/file_selector.dart';
-import 'package:creative_project_client_flutter/api/models/models.dart'
-    as models;
+import 'package:api/models.dart' as models;
 
 import '../../2i18nEx.dart';
-
-enum Type implements Comparable<Type> {
-  file(title: addItemDialogTypeFileTitle, value: 1),
-  dir(title: addItemDialogTypeDirTitle, value: 2),
-  url(title: addItemDialogTypeURLTitle, value: 3);
-
-  const Type({required this.title, required this.value});
-
-  final String title;
-  final int value;
-
-  @override
-  int compareTo(Type other) => value - other.value;
-}
 
 class AddItemDialog extends StatefulWidget {
   const AddItemDialog({super.key});
@@ -30,14 +15,14 @@ class AddItemDialog extends StatefulWidget {
 class _AddItemDialogState extends State<AddItemDialog> {
   late final TextEditingController titleController;
   late final TextEditingController pathController;
-  late Type type;
+  late models.ItemType type;
 
   @override
   void initState() {
     super.initState();
     titleController = TextEditingController();
     pathController = TextEditingController();
-    type = Type.file;
+    type = models.ItemType.file;
   }
 
   @override
@@ -51,7 +36,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
   void save(BuildContext context) {
     Navigator.of(context).pop(models.Item(
       title: titleController.text,
-      type: type.value,
+      type: type,
       path: pathController.text,
     ));
   }
@@ -78,11 +63,11 @@ class _AddItemDialogState extends State<AddItemDialog> {
     return ContentDialog(
       title: (() {
         switch (type) {
-          case Type.file:
+          case models.ItemType.file:
             return const Text(addItemDialogTitleFile);
-          case Type.dir:
+          case models.ItemType.folder:
             return const Text(addItemDialogTitleDirectory);
-          case Type.url:
+          case models.ItemType.link:
             return const Text(addItemDialogTitleURL);
         }
       })(),
@@ -92,22 +77,22 @@ class _AddItemDialogState extends State<AddItemDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ComboBox<Type>(
+              ComboBox<models.ItemType>(
                 value: type,
-                items: Type.values
+                items: models.ItemType.values
                     .map((e) => ComboBoxItem(
                           value: e,
-                          child: Text(e.title),
+                          child: Text(e.name), // TODO: string/map by val + i18n
                         ))
                     .toList(),
-                onChanged: (Type? t) => setState(() => type = t!),
+                onChanged: (models.ItemType? t) => setState(() => type = t!),
               ),
-              if (type == Type.file)
+              if (type == models.ItemType.file)
                 Button(
                   child: const Text(addItemDialogPickFilePath),
                   onPressed: () => pickFile(context),
                 ),
-              if (type == Type.dir)
+              if (type == models.ItemType.folder)
                 Button(
                   child: const Text(addItemDialogPickDirectoryPath),
                   onPressed: () => pickDirectory(context),
@@ -117,7 +102,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
           TextFormBox(
             controller: pathController,
             placeholder: addItemDialogPathControllerPlaceHolder,
-            readOnly: type != Type.url,
+            readOnly: type != models.ItemType.link,
             validator: (value) => value == null || value.isEmpty
                 ? addItemDialogPathControllerValidator
                 : null,

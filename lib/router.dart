@@ -20,14 +20,13 @@ final GoRouter router = GoRouter(
         GoRoute(
           path: '/',
           name: 'home',
-          builder: (context, state) => const ItemListPage(),
+          builder: (context, state) => const Explorer(),
         ),
         GoRoute(
           path: '/list',
           name: 'list',
-          builder: (context, state) => ItemListPage(
-            ip: state.queryParameters['ip'],
-          ),
+          builder: (context, state) =>
+              Explorer(ip: state.queryParameters['ip']),
         ),
         GoRoute(
           path: '/settings',
