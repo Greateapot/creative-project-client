@@ -19,8 +19,8 @@ class Database {
   int get port => box.get('port', defaultValue: 8097);
   set port(int value) => box.put('port', value);
 
-  int get scanDelay => box.get('scanDelay', defaultValue: 500);
-  set scanDelay(int value) => box.put('scanDelay', value);
+  int get scanTimeout => box.get('scanTimeout', defaultValue: 500);
+  set scanTimeout(int value) => box.put('scanTimeout', value);
 
   int get scanThreads => box.get('scanThreads', defaultValue: 4);
   set scanThreads(int value) => box.put('scanThreads', value);

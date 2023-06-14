@@ -47,7 +47,7 @@ class _ServerPageState extends State<ServerPage> {
       '--corr-file-ext="${database.corrupted}"',
       '--data-filename="${database.dataFileName}"',
       '--port=${database.port}',
-      '--scan-delay=${database.scanDelay}',
+      '--scan-timeout=${database.scanTimeout}',
       '--scan-threads=${database.scanThreads}',
     ];
 

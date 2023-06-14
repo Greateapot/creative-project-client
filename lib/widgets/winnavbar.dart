@@ -1,9 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:window_manager/window_manager.dart';
 
-// import '../theme.dart';
-
 class WindowNavigationBar extends StatefulWidget {
+  /// Кнопки свернуть, раскрыть, закрыть, но свои, чтоб красиво было.
   const WindowNavigationBar({super.key});
 
   @override

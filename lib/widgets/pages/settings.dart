@@ -75,13 +75,14 @@ class _SettingsPageState extends State<SettingsPage> {
           ListTile(
             title: const Text(settingsPageScanDelayTitle),
             subtitle: Slider(
-              label: database.scanDelay.toString(),
+              label: database.scanTimeout.toString(),
               style: sliderThemeData,
               min: 100, // TODO: MV defaults
               max: 3000, // TODO: MV defaults
               divisions: 29,
-              value: database.scanDelay.toDouble(),
-              onChanged: (v) => setState(() => database.scanDelay = v.toInt()),
+              value: database.scanTimeout.toDouble(),
+              onChanged: (v) =>
+                  setState(() => database.scanTimeout = v.toInt()),
             ),
           ),
           ListTile(

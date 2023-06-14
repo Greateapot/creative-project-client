@@ -4,6 +4,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:api/models.dart' as models;
 
 import '../../2i18nEx.dart';
+import '../../utils.dart';
 
 class AddItemDialog extends StatefulWidget {
   const AddItemDialog({super.key});
@@ -32,7 +33,6 @@ class _AddItemDialogState extends State<AddItemDialog> {
     super.dispose();
   }
 
-  // TODO: assert url with r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
   void save(BuildContext context) {
     Navigator.of(context).pop(models.Item(
       title: titleController.text,
@@ -126,7 +126,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
       actions: [
         Button(
           onPressed: (titleController.text.isNotEmpty &&
-                  pathController.text.isNotEmpty)
+                  pathController.text.isNotEmpty &&
+                  isURL(pathController.text))
               ? () => save(context)
               : null,
           child: const Text(addItemDialogSave),

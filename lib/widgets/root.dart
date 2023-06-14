@@ -3,7 +3,6 @@ import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:api/api.dart';
-import 'package:api/models.dart' as models;
 
 import 'winnavbar.dart';
 import '../theme.dart';
@@ -27,9 +26,9 @@ class Root extends StatefulWidget {
 
 class _RootState extends State<Root> {
   final API api = API();
-  bool updating = false;
+  bool isUpdating = false;
 
-  late List<NavigationPaneItem> originalItems = [
+  late final List<NavigationPaneItem> originalItems = [
     PaneItem(
       key: const Key('/'),
       icon: const Icon(FluentIcons.this_p_c),
@@ -90,57 +89,85 @@ class _RootState extends State<Root> {
     }
   }
 
-  void getOnline() async {
-    setState(() => updating = true);
-    models.Online online;
+  Future<void> _getOnline() async {
+    if (isUpdating) return; // atomic-like
+    setState(() => isUpdating = true);
     try {
-      online = await api.online();
-    } catch (_) {
-      // TODO: check all exceptions
-      online = const models.Online(online: []);
+      originalItems
+        ..clear()
+        ..addAll([
+          PaneItem(
+            key: const Key('/'),
+            icon: const Icon(FluentIcons.this_p_c),
+            title: const Text(rootMenuHome),
+            body: const SizedBox.shrink(),
+            onTap: () {
+              GoRouter router = GoRouter.of(context);
+              if (router.location != '/') router.pushNamed('home');
+            },
+          ),
+          for (final String ip in (await api.online()).online)
+            PaneItem(
+              key: Key('/list?ip=$ip'),
+              icon: const Icon(FluentIcons.pc1),
+              title: Text(ip),
+              body: const SizedBox.shrink(),
+              onTap: () {
+                GoRouter router = GoRouter.of(context);
+                if (router.location != '/list?ip=$ip') {
+                  router.push('/list?ip=$ip');
+                }
+              },
+            ),
+        ]);
+    } on NoConnectivityException {
+      _showSnackbar("Err while getting online list: No internet connection.");
+    } on FetchDataException catch (e) {
+      _showSnackbar("Err while getting online list: ${e.message}.");
+    } finally {
+      setState(() => isUpdating = false);
     }
+  }
 
-    List<NavigationPaneItem> lOriginalItems = [
-      PaneItem(
-        key: const Key('/'),
-        icon: const Icon(FluentIcons.this_p_c),
-        title: const Text(rootMenuHome),
-        body: const SizedBox.shrink(),
-        onTap: () {
-          GoRouter router = GoRouter.of(context);
-          if (router.location != '/') router.pushNamed('home');
-        },
-      ),
-    ];
-
-    for (final String ip in online.online) {
-      final String path = '/list?ip=$ip';
-      lOriginalItems.add(
-        PaneItem(
-          key: Key(path),
-          icon: const Icon(FluentIcons.pc1),
-          title: Text(ip),
-          body: const SizedBox.shrink(),
-          onTap: () {
-            GoRouter router = GoRouter.of(context);
-            if (router.location != path) router.push(path);
-          },
-        ),
+  Widget paneBodyBuilder(PaneItem? item, Widget? child) => FocusTraversalGroup(
+        key: ValueKey('body${item?.key}'),
+        child: widget.child,
       );
-    }
-    originalItems = lOriginalItems;
-    setState(() => updating = false);
+
+  void _showSnackbar(String data) {
+    FluentThemeData theme = FluentTheme.of(context);
+    showSnackbar(
+      context,
+      SnackbarTheme(
+        data: SnackbarThemeData(
+          padding: EdgeInsets.symmetric(
+            vertical: 8.0 + theme.visualDensity.vertical,
+            horizontal: 16.0 + theme.visualDensity.horizontal,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4.0),
+            color: theme.brightness == Brightness.light
+                ? const Color(0xFFDEDEDE)
+                : const Color(0xFF212121),
+          ),
+        ),
+        child: Snackbar(
+          content: Text(data),
+          extended: true,
+        ),
+      ),
+    );
   }
 
   @override
   void initState() {
+    _getOnline();
     super.initState();
-    getOnline();
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("Root Rebuild: ${originalItems.map((e) => e.key).join(', ')}");
+    // debugPrint("Root Rebuild: ${originalItems.map((e) => e.key).join(', ')}");
     final appTheme = context.watch<AppTheme>();
     return NavigationView(
       key: GlobalKey(debugLabel: 'Navigation View Key'),
@@ -157,14 +184,7 @@ class _RootState extends State<Root> {
         ),
         actions: WindowNavigationBar(),
       ),
-      paneBodyBuilder: (item, child) {
-        final name =
-            item?.key is ValueKey ? (item!.key as ValueKey).value : null;
-        return FocusTraversalGroup(
-          key: ValueKey('body$name'),
-          child: widget.child,
-        );
-      },
+      paneBodyBuilder: paneBodyBuilder,
       pane: NavigationPane(
         selected: _calculateSelectedIndex(context),
         header: SizedBox(
@@ -175,17 +195,19 @@ class _RootState extends State<Root> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(rootMenu),
-                updating
+                const Spacer(),
+                isUpdating
                     ? const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: SizedBox(
-                          height: kOneLineTileHeight / 2,
-                          width: kOneLineTileHeight / 2,
-                          child: ProgressRing(strokeWidth: 2),
+                        padding: EdgeInsets.only(right: 4),
+                        child: Center(
+                          child: SizedBox.square(
+                            dimension: kOneLineTileHeight / 2,
+                            child: ProgressRing(strokeWidth: 2),
+                          ),
                         ),
                       )
                     : IconButton(
-                        onPressed: getOnline,
+                        onPressed: _getOnline,
                         icon: const Icon(FluentIcons.refresh),
                       ),
               ],
